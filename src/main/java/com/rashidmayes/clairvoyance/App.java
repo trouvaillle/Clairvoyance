@@ -1,24 +1,11 @@
 package com.rashidmayes.clairvoyance;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
-
-import org.apache.commons.lang.StringUtils;
-
+import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Info;
-import com.aerospike.client.async.AsyncClient;
-import com.aerospike.client.async.AsyncClientPolicy;
 import com.aerospike.client.cluster.Node;
+import com.aerospike.client.policy.ClientPolicy;
 import com.rashidmayes.clairvoyance.util.MapHelper;
-
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -29,6 +16,17 @@ import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 public class App extends Application
 {
@@ -44,7 +42,7 @@ public class App extends Application
     });
 	static final Preferences Config =  Preferences.userNodeForPackage(App.class);
 	
-	private static AsyncClient client = null;
+	private static AerospikeClient client = null;
 	protected static String host = null;
 	protected static int port;
 	protected static boolean useServicesAlternate;
@@ -126,27 +124,27 @@ public class App extends Application
 		App.useServicesAlternate = useServicesAlternate;
 	}
 	
-	public static AsyncClient getClient() throws AerospikeException {
+	public static AerospikeClient getClient() throws AerospikeException {
 		return getClient(false);
 	}
 	
-	public static AsyncClient getClient(boolean create) throws AerospikeException {
+	public static AerospikeClient getClient(boolean create) throws AerospikeException {
 		if ( client == null || create || !client.isConnected() ) {
-			
-			AsyncClientPolicy policy = new AsyncClientPolicy();
+
+			ClientPolicy policy = new ClientPolicy();
 			policy.useServicesAlternate = App.useServicesAlternate;
 			
 			if ( StringUtils.isBlank(username) || StringUtils.isBlank(password) ) {
-				client = new AsyncClient(host, port);
+				client = new AerospikeClient(host, port);
 			} else {
 				policy.user = username;
 				policy.password = password;
-				client = new AsyncClient(policy, host, port);
+				client = new AerospikeClient(policy, host, port);
 			}
 			
-			client.writePolicyDefault.timeout = 4000;
-			client.readPolicyDefault.timeout = 4000;
-			client.queryPolicyDefault.timeout = Integer.MAX_VALUE;
+			client.writePolicyDefault.totalTimeout = 4000;
+			client.readPolicyDefault.totalTimeout = 4000;
+			client.queryPolicyDefault.totalTimeout = Integer.MAX_VALUE;
 		}
 		
 		return client;

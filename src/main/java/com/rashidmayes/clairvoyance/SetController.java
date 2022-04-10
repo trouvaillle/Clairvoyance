@@ -13,16 +13,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
+import com.aerospike.client.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Key;
-import com.aerospike.client.Record;
-import com.aerospike.client.ScanCallback;
-import com.aerospike.client.async.AsyncClient;
 import com.aerospike.client.cluster.Node;
-import com.aerospike.client.policy.Priority;
 import com.aerospike.client.policy.ScanPolicy;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
@@ -161,11 +156,8 @@ public class SetController implements ScanCallback {
 								
 				    	    	ScanPolicy scanPolicy = new ScanPolicy();
 				    	    	scanPolicy.concurrentNodes = true;
-				    	    	scanPolicy.priority = Priority.LOW;
-				    	    	scanPolicy.scanPercent = 100;
-				    	    	//scanPolicy.maxConcurrentNodes = 1;
 				    	    	
-				    	    	AsyncClient client = App.getClient();
+				    	    	AerospikeClient client = App.getClient();
 				    	    	
 				    	    	
 				    	    	Statement statement = new Statement();

@@ -2,7 +2,7 @@ root {
     display: block;
 }
 .root {
-	-fx-background-color: #c31618;
+	-fx-background-color: #26282f;
 }
 .label {
     -fx-font-size: 12.0px;
@@ -16,5 +16,5 @@ root {
     -fx-text-fill: white;
     -fx-font-size: 12.0px;
     -fx-font-weight: bold;
-    -fx-background-color: #940a0b;
+    -fx-background-color: #46484f;
 }
