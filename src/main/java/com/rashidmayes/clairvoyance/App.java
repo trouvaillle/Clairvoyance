@@ -3,8 +3,12 @@ package com.rashidmayes.clairvoyance;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Info;
+import com.aerospike.client.async.EventLoops;
+import com.aerospike.client.async.EventPolicy;
+import com.aerospike.client.async.NioEventLoops;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.ClientPolicy;
+import com.aerospike.client.policy.RecordExistsAction;
 import com.rashidmayes.clairvoyance.util.MapHelper;
 import javafx.application.Application;
 import javafx.event.EventHandler;
@@ -130,8 +134,24 @@ public class App extends Application
 	
 	public static AerospikeClient getClient(boolean create) throws AerospikeException {
 		if ( client == null || create || !client.isConnected() ) {
+			// initialize event loops
+			final int numLoops = 5;
+			final int commandsPerEventLoop = 50;
+			final int delayQueueSize = 50;
+
+			EventLoops eventLoops = InitializeEventLoops(EventLoopType.DIRECT_NIO, numLoops, commandsPerEventLoop, delayQueueSize);
+
+			App.APP_LOGGER.info(String.format("Event loops initialized with num-loops: %s, commands-per-event-loop: %s, delay-queue-size: %s.",
+					numLoops, commandsPerEventLoop, delayQueueSize));
 
 			ClientPolicy policy = new ClientPolicy();
+
+			policy.eventLoops = eventLoops;
+			int concurrentMax = commandsPerEventLoop * numLoops;
+			if (policy.maxConnsPerNode < concurrentMax) {
+				policy.maxConnsPerNode = concurrentMax;
+			}
+
 			policy.useServicesAlternate = App.useServicesAlternate;
 			
 			if ( StringUtils.isBlank(username) || StringUtils.isBlank(password) ) {
@@ -143,11 +163,33 @@ public class App extends Application
 			}
 			
 			client.writePolicyDefault.totalTimeout = 4000;
+			client.writePolicyDefault.recordExistsAction = RecordExistsAction.REPLACE;
+			client.writePolicyDefault.sendKey = true;
 			client.readPolicyDefault.totalTimeout = 4000;
 			client.queryPolicyDefault.totalTimeout = Integer.MAX_VALUE;
 		}
 		
 		return client;
+	}
+
+
+	enum EventLoopType{DIRECT_NIO}
+
+	// a function to create event loops with specified parameters
+	private static EventLoops InitializeEventLoops(EventLoopType eventLoopType, int numLoops, int commandsPerEventLoop,
+									int maxCommandsInQueue) {
+		EventPolicy eventPolicy = new EventPolicy();
+		eventPolicy.maxCommandsInProcess = commandsPerEventLoop;
+		eventPolicy.maxCommandsInQueue = maxCommandsInQueue;
+		EventLoops eventLoops = null;
+		switch(eventLoopType) {
+			case DIRECT_NIO:
+				eventLoops = new NioEventLoops(eventPolicy, numLoops);
+				break;
+			default:
+				System.out.println("Error: Invalid event loop type");
+		}
+		return eventLoops;
 	}
 	
     public static void main(String[] args) {

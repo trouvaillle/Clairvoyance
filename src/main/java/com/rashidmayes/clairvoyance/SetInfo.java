@@ -8,6 +8,8 @@ public class SetInfo implements Identifiable {
 	public long objectCount;
 	public long bytesMemory;
 	public Map<String, String> properties;
+	public SetController setController;
+	public String valueDumped;
 	
 	@Override
 	public Object getId() {

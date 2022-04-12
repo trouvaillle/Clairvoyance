@@ -29,6 +29,13 @@
 					<MenuItem mnemonicParsing="false" text="Exit" onAction="#handleExit"/>
 				</items>
 			</Menu>
+			<Menu mnemonicParsing="false" text="Edit">
+				<items>
+					<MenuItem mnemonicParsing="false" text="Insert" onAction="#handleInsertDocument"/>
+					<!--<MenuItem mnemonicParsing="false" text="Edit Document" onAction="#handleEditDocument"/>-->
+					<!--<MenuItem mnemonicParsing="false" text="Delete" onAction="#handleDeleteDocument"/>-->
+				</items>
+			</Menu>
 			<Menu mnemonicParsing="false" text="Documentation">
 				<items>
 					<MenuItem mnemonicParsing="false" id="http://www.aerospike.com/docs/" text="Overview" onAction="#handleWeb"/>

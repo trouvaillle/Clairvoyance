@@ -1,0 +1,11 @@
+#txtDocumentValue {
+    /* -fx-background-color: #1e1e1e;
+    -fx-text-fill: #bababa; */
+    -fx-text-fill: black;
+    -fx-font-size: 12px;
+    -fx-font-family: "Courier";
+}
+
+#txtDocumentValue.color-red {
+    -fx-text-fill: black;
+}

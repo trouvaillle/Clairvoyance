@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<GridPane xmlns:fx="http://javafx.com/fxml" id="rootPane" fx:id="rootPane" fx:controller="com.rashidmayes.clairvoyance.InsertDocumentController">
+	<children>
+		<ToolBar GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="NEVER">
+			<HBox>
+				<Button id="btnInsert" fx:id="btnInsert" text="Insert" onAction="#handleBtnInsert"/>
+			</HBox>
+			<GridPane.margin>
+				<Insets bottom="8"/>
+			</GridPane.margin>
+		</ToolBar>
+
+		<Label text="Namespace" minWidth="100" alignment="BASELINE_LEFT" GridPane.columnIndex="0" GridPane.columnSpan="1" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.vgrow="NEVER">
+			<padding>
+				<Insets left="16" right="16"/>
+			</padding>
+		</Label>
+		<TextField id="txtNamespace" fx:id="txtNamespace" minHeight="24" GridPane.columnIndex="1" GridPane.columnSpan="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="NEVER">
+			<GridPane.margin>
+				<Insets bottom="4" right="16"/>
+			</GridPane.margin>
+		</TextField>
+
+		<Label text="Set" minWidth="100" alignment="BASELINE_LEFT" GridPane.columnIndex="0" GridPane.columnSpan="1" GridPane.hgrow="NEVER" GridPane.rowIndex="2" GridPane.vgrow="NEVER">
+			<padding>
+				<Insets left="16" right="16"/>
+			</padding>
+		</Label>
+		<TextField id="txtSet" fx:id="txtSet" minHeight="24" GridPane.columnIndex="1" GridPane.columnSpan="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.vgrow="NEVER">
+			<GridPane.margin>
+				<Insets bottom="8" right="16"/>
+			</GridPane.margin>
+		</TextField>
+
+		<TextArea id="txtDocumentValue" fx:id="txtDocumentValue" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.vgrow="ALWAYS" onKeyTyped="#handleTxtDocumentValueOnKeyTyped"/>
+
+	</children>
+
+	<stylesheets>
+		<URL value="@tab_insert_document.css" />
+	</stylesheets>
+</GridPane>

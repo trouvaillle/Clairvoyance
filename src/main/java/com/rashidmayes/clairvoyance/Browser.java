@@ -1,13 +1,17 @@
 package com.rashidmayes.clairvoyance;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 
 import javax.swing.text.TableView;
 
+import com.aerospike.client.Key;
+import com.rashidmayes.clairvoyance.model.InsertDocumentInfo;
 import org.apache.commons.io.FileUtils;
 
 import com.aerospike.client.AerospikeClient;
@@ -40,6 +44,7 @@ import javafx.scene.web.WebView;
 public class Browser implements Runnable, ChangeListener<TreeItem<SimpleTreeNode>>, EventHandler<MouseEvent> {
 	
 	private static final String NAME_FORMAT = "%s (%s)";
+	public static final String INSERT_DOCUMENT_TAB_ID = "$insert.document";
 	
     private final ImageView rootIcon = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("ic_cluster.png")));
     private final Image namespaceIcon = new Image(getClass().getClassLoader().getResourceAsStream("ic_storage.png"));
@@ -60,6 +65,8 @@ public class Browser implements Runnable, ChangeListener<TreeItem<SimpleTreeNode
     
 	private ObjectMapper mObjectMapper = new ObjectMapper();
 	private ObjectWriter mObjectWriter;
+
+	public static Browser browserInstance;
 
 
     public Browser() {
@@ -86,6 +93,17 @@ public class Browser implements Runnable, ChangeListener<TreeItem<SimpleTreeNode
         if ( mouseEvent.getClickCount() == 2 ) {
             //TreeItem<SimpleTreeNode> item = namespacesTree.getSelectionModel().getSelectedItem();
         }
+		if (namespacesTree.getSelectionModel().getSelectedItem() != null) {
+			boolean boolFound = false;
+			for (Tab tab : this.tabs.getTabs()) {
+				if (tab.getId() == namespacesTree.getSelectionModel().getSelectedItem().getValue().value.getId()) {
+					boolFound = true;
+				}
+			}
+			if (!boolFound) {
+				this.changed(null, null, namespacesTree.getSelectionModel().getSelectedItem());
+			}
+		}
     }
     
 
@@ -113,15 +131,38 @@ public class Browser implements Runnable, ChangeListener<TreeItem<SimpleTreeNode
 		        if ( identifiable instanceof NamespaceInfo ) {
 		        	tab.setContent( (javafx.scene.Node) FXMLLoader.load(getClass().getClassLoader().getResource("tab_namespace.fxml")) );
 		        } else if ( identifiable instanceof SetInfo ) {
-		        	tab.setContent( (javafx.scene.Node) FXMLLoader.load(getClass().getClassLoader().getResource("tab_set.fxml")) );
-		        } else {
+					FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("tab_set.fxml"));
+		        	tab.setContent( (javafx.scene.Node) fxmlLoader.load() );
+					((SetInfo) identifiable).setController = (SetController) fxmlLoader.getController();
+				} else {
 		        	tab.setContent( (javafx.scene.Node) FXMLLoader.load(getClass().getClassLoader().getResource("tab_cluster.fxml")) );
 		        }
 		        tab.getContent().setUserData(identifiable);
 		        tabs.getTabs().add(tab);
 			}
 			
-			tabs.getSelectionModel().select(tab);			
+			tabs.getSelectionModel().select(tab);
+
+			tabs.setOnKeyPressed(keyEvent -> {
+				if (keyEvent.getText().equals("w") && keyEvent.isMetaDown() && keyEvent.isShortcutDown()) {
+					Tab selectedItem = tabs.getSelectionModel().getSelectedItem();
+					if (selectedItem != null) {
+						removeTab(selectedItem.getId());
+					}
+				}
+				if (keyEvent.getText().equals("f") && keyEvent.isMetaDown() && keyEvent.isShortcutDown()) {
+					Tab selectedItem = tabs.getSelectionModel().getSelectedItem();
+					if (selectedItem != null) {
+						((SetInfo)selectedItem.getContent().getUserData()).setController.txtSearch.requestFocus();
+					}
+				}
+				if (keyEvent.getText().equals("r") && keyEvent.isMetaDown() && keyEvent.isShortcutDown()) {
+					Tab selectedItem = tabs.getSelectionModel().getSelectedItem();
+					if (selectedItem != null) {
+						((SetInfo)selectedItem.getContent().getUserData()).setController.startScan();
+					}
+				}
+			});
 		} catch (Exception e) {
 			App.APP_LOGGER.log(Level.SEVERE, e.getMessage(), e);
 		}
@@ -237,7 +278,6 @@ public class Browser implements Runnable, ChangeListener<TreeItem<SimpleTreeNode
 				
 		        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("tab_data_creator.fxml"));
 		        tab.setContent(root);
-		        
 		        tabs.getTabs().add(tab);
     		}
 
@@ -294,8 +334,19 @@ public class Browser implements Runnable, ChangeListener<TreeItem<SimpleTreeNode
     		}
     	}
     }
-    
-    public void run() {
+
+	@FXML protected void handleInsertDocument(ActionEvent event) {
+		this.addInsertDocumentTab();
+	}
+
+	@FXML protected void handleDeleteDocument(ActionEvent event) {
+		Tab selectedTab = this.tabs.getSelectionModel().getSelectedItem();
+		if (selectedTab == null) {
+			return;
+		}
+	}
+
+	public void run() {
     	
     	while (!cancel) {
     	
@@ -417,4 +468,69 @@ public class Browser implements Runnable, ChangeListener<TreeItem<SimpleTreeNode
     		tick = !tick;
     	}
     }
+
+	public Tab findTab(String tabId) {
+		for (Tab tab : this.tabs.getTabs()) {
+			if (tabId.equals(tab.getId())) {
+				return tab;
+			}
+		}
+		return null;
+	}
+
+	public void removeTab(String tabId) {
+		Tab tabMatches = findTab(tabId);
+		if (tabMatches != null) {
+			this.tabs.getTabs().remove(tabMatches);
+		}
+	}
+
+	public void setDisableTab(String tabId, Boolean disable) {
+		Tab tabMatches = findTab(tabId);
+		if (tabMatches != null) {
+			tabMatches.setDisable(disable);
+		}
+	}
+
+	public void addInsertDocumentTab() {
+		addInsertDocumentTab("", "", "");
+	}
+
+	public void addInsertDocumentTab(String newNamespace, String newSetName, String newValue) {
+		Tab insertTab = new Tab();
+		InsertDocumentInfo insertDocumentInfo = new InsertDocumentInfo() {{
+			this.namespace = newNamespace;
+			this.setName = newSetName;
+			if (!newValue.trim().equals("")) {
+				this.value = newValue;
+			}
+		}};
+		insertTab.setId(insertDocumentInfo.getId().toString());
+		insertTab.setText("Insert Document " + insertDocumentInfo.index);
+		try {
+			insertTab.setContent((javafx.scene.Node) FXMLLoader.load(getClass().getClassLoader().getResource("tab_insert_document.fxml")));
+		} catch (IOException ioException) {
+			App.APP_LOGGER.severe("addInsertDocumentTab failed: " + ioException.getMessage());
+			ioException.printStackTrace();
+		}
+		insertTab.getContent().setUserData(insertDocumentInfo);
+		this.tabs.getTabs().add(insertTab);
+		this.tabs.getSelectionModel().select(insertTab);
+	}
+
+	public void updateRecordRowOnSet(String tabId, Key key, Map<String, Object> bins) {
+		Tab tabMatches = findTab(tabId);
+		if (tabMatches != null) {
+			SetInfo setInfo = (SetInfo) tabMatches.getContent().getUserData();
+			setInfo.setController.updateRecordRowOnSet(key, bins);
+		}
+	}
+
+	public void deleteRecordRowOnSet(String tabId, Key key) {
+		Tab tabMatches = findTab(tabId);
+		if (tabMatches != null) {
+			SetInfo setInfo = (SetInfo) tabMatches.getContent().getUserData();
+			setInfo.setController.deleteRecordRowOnSet(key);
+		}
+	}
 }

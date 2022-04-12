@@ -23,13 +23,28 @@
 
         <ToolBar GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" GridPane.vgrow="NEVER">
             <HBox>
-                <Button text="Stop"/>
+                <!--<Button text="Stop">
+					<HBox.margin>
+						<Insets right="8"/>
+					</HBox.margin>
+				</Button>-->
+				<Button text="Refresh" id="btnRefresh" fx:id="btnRefresh" onAction="#handleBtnRefresh">
+					<HBox.margin>
+						<Insets right="8"/>
+					</HBox.margin>
+				</Button>
+				<TextField id="txtSearch" fx:id="txtSearch" promptText="search..." minWidth="320" onKeyPressed="#handleTxtSearch">
+					<HBox.margin>
+						<Insets right="8"/>
+					</HBox.margin>
+				</TextField>
+				<CheckBox id="chkRegex" fx:id="chkRegex" selected="true" text="regex" alignment="BOTTOM_LEFT" onAction="#handleChkRegex"/>
             </HBox>
         </ToolBar>
 
 
 
-	<SplitPane dividerPositions=".8" GridPane.columnIndex="0" GridPane.columnSpan="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+	<SplitPane dividerPositions=".7" GridPane.columnIndex="0" GridPane.columnSpan="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
 		<items>
 	
 			<GridPane>

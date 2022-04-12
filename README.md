@@ -15,6 +15,8 @@ Clairvoyance is a simple data browser for the Aerospike database. It uses scans 
 modified by trouvaillle
 - support aerospike client 5.x
 - change the main color to more eye-friendly color
+- added insert, edit, delete feature
+- added search feature
 
 ## Screenshots
 
