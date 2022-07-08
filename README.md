@@ -17,6 +17,11 @@ modified by trouvaillle
 - change the main color to more eye-friendly color
 - added insert, edit, delete feature
 - added search feature
+- TODO: search 오류나면 빨간 글씨
+- TODO: set browser 오른쪽 버튼 누르면 세트 지우거나 생성 가능하도록
+- TODO: insert 할 때 id 대신 @user_key로
+- TODO: syntax highlighting
+- TODO: refresh도 페이지 넘어가면 첫 페이지만 나오는 문제
 
 ## Screenshots
 
